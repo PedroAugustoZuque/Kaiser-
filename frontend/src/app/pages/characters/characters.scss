@@ -1,0 +1,90 @@
+.page-container {
+  padding: 40px;
+}
+
+.page-header {
+  margin-bottom: 40px;
+  
+  h1 {
+    margin-bottom: 10px;
+  }
+  
+  p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+  }
+}
+
+.creator-container {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+.creator-sidebar {
+  flex: 0 0 320px;
+  width: 100%;
+}
+
+.creator-main {
+  flex: 1;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px dashed var(--border-glass);
+  text-align: center;
+  color: var(--text-secondary);
+  
+  &:hover {
+    border-style: solid;
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+    background: rgba(195, 155, 86, 0.1);
+  }
+}
+
+.character-preview {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+
+  .preview-img {
+    width: 140px;
+    height: 140px;
+    border-radius: 8px;
+    border: 2px solid var(--accent-gold);
+    background-size: cover;
+    background-position: center;
+    box-shadow: var(--shadow-deep);
+  }
+}
+
+.actions {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}

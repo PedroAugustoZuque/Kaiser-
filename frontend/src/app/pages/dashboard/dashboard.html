@@ -1,0 +1,111 @@
+<div class="dashboard-page page-container">
+  <!-- Identity Setup (Overlay) -->
+  <div *ngIf="!userName" class="identity-setup surface-glass">
+    <div class="setup-content">
+      <h2 class="accent-title">IDENTIFICAÇÃO REQUERIDA</h2>
+      <p class="crypto-text">> INSIRA SEU NOME OPERACIONAL PARA ACESSAR O SISTEMA CRIS</p>
+      <input type="text" [(ngModel)]="tempName" placeholder="NOME DO AGENTE..." class="field-input terminal-input">
+      <button class="btn accent-btn" (click)="saveIdentity()">VINCULAR IDENTIDADE</button>
+    </div>
+  </div>
+
+  <div *ngIf="userName" class="dashboard-content">
+    <div class="page-header" style="border-bottom: 2px solid var(--accent-primary); margin-bottom: 30px; padding-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h1 style="margin: 0;">TERMINAL CENTRAL</h1>
+          <p style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+            LOGADO COMO: {{ userName }} // STATUS: ONLINE
+          </p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-sm" (click)="showCreateModal = true">+ NOVA MESA</button>
+          <button class="btn btn-sm btn-secondary" (click)="showJoinModal = true">ENTRAR POR CÓDIGO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <div *ngIf="showCreateModal" class="modal-overlay">
+      <div class="modal-content surface-glass">
+        <h3>INICIAR NOVA OPERAÇÃO</h3>
+        <input type="text" [(ngModel)]="newRoomName" placeholder="NOME DA MISSÃO / MESA..." class="field-input">
+        <div class="modal-buttons">
+          <button class="btn" (click)="createRoom()">CRIAR</button>
+          <button class="btn btn-secondary" (click)="showCreateModal = false">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="showJoinModal" class="modal-overlay">
+      <div class="modal-content surface-glass">
+        <h3>DECODIFICAR CONVITE</h3>
+        <input type="text" [(ngModel)]="inviteCodeInput" placeholder="CÓDIGO DE 6 DÍGITOS..." class="field-input uppercase">
+        <div class="modal-buttons">
+          <button class="btn" (click)="joinRoom()">CONECTAR</button>
+          <button class="btn btn-secondary" (click)="showJoinModal = false">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Rooms Section -->
+    <section class="dashboard-section">
+      <h3 class="section-title">SALAS DE JOGO ATIVAS</h3>
+      
+      <div *ngIf="rooms.length === 0" class="empty-state surface-glass small">
+        <p>NENHUMA OPERAÇÃO EM CURSO NO MOMENTO.</p>
+      </div>
+
+      <div class="room-grid">
+        <div *ngFor="let room of rooms" class="room-card surface-glass" (click)="onRoomClick(room)">
+          <div class="room-icon">
+             <div class="folder-svg"></div>
+          </div>
+          <div class="room-info">
+            <h4 class="room-name">{{ room.name }}</h4>
+            <div class="room-meta">
+              <span class="gm-tag">MESTRE: {{ room.gmName }}</span>
+              <span class="code-badge">{{ room.inviteCode }}</span>
+            </div>
+          </div>
+          <div class="room-footer">
+            CONEXÃO ESTÁVEL // SET {{ room.createdAt | date:'short' }}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Personal Dossiers Section (Collapsible or Secondary) -->
+    <section class="dashboard-section" style="margin-top: 50px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h3 class="section-title" style="margin-bottom: 0;">SEUS DOSSIÊS (LOCAL)</h3>
+        <a routerLink="/recrutamento" class="btn btn-sm">RECRUTAR NOVO AGENTE</a>
+      </div>
+
+      <div *ngIf="agents.length === 0" class="empty-state surface-glass small">
+        <p>NENHUM AGENTE REGISTRADO LOCALMENTE.</p>
+      </div>
+
+      <div class="agent-grid">
+        <div *ngFor="let agent of agents" 
+             class="agent-card surface-glass" 
+             (dblclick)="onAgentDoubleClick(agent)">
+          <div class="card-header">
+            <span class="nex-tag">NEX {{ agent.fieldsData['nex'] || 5 }}%</span>
+            <button class="delete-btn" (click)="deleteAgent(agent.id, $event)">×</button>
+          </div>
+          <div class="agent-portrait" 
+               [style.backgroundImage]="agent.portraitUrl ? 'url(' + agent.portraitUrl + ')' : 'none'"
+               [class.no-portrait]="!agent.portraitUrl">
+          </div>
+          <div class="agent-info">
+            <h4 class="agent-name">{{ agent.name }}</h4>
+            <div class="agent-specs">
+              <span class="class-label">{{ agent.fieldsData['class'] || 'Combatente' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

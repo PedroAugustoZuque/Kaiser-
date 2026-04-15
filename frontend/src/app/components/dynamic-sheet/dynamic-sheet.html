@@ -1,0 +1,78 @@
+<div class="sheet-container glass-panel">
+  <!-- Character Header -->
+  <div class="sheet-header">
+    <div class="portrait" [style.backgroundImage]="data.portraitUrl ? 'url(' + data.portraitUrl + ')' : 'none'"></div>
+    <div class="header-info">
+      <h2 class="char-name">{{ data.name }}</h2>
+      <span class="system-badge">{{ schema.name }}</span>
+    </div>
+  </div>
+
+  <form [formGroup]="sheetForm" class="sheet-body">
+    <!-- Loop through Schema Sections -->
+    <div *ngFor="let section of schema.sections" class="sheet-section">
+      <h3 class="section-title">{{ section.title }}</h3>
+      
+      <div [ngClass]="getLayoutClass(section.layout)">
+        <!-- Loop through Fields -->
+        <div *ngFor="let field of section.fields" class="field-container">
+          <label [for]="field.id" class="field-label">{{ field.label }}</label>
+          
+          <ng-container [ngSwitch]="field.type">
+            <!-- Number Input -->
+            <input *ngSwitchCase="'number'" 
+                   [id]="field.id" 
+                   type="number" 
+                   [formControlName]="field.id" 
+                   [min]="field.minValue || ''" 
+                   [max]="field.maxValue || ''"
+                   class="field-input text-center">
+                   
+            <!-- Text Input -->
+            <input *ngSwitchCase="'text'" 
+                   [id]="field.id" 
+                   type="text" 
+                   [formControlName]="field.id" 
+                   class="field-input">
+                   
+            <!-- Long Text Area -->
+            <textarea *ngSwitchCase="'longtext'"
+                      [id]="field.id"
+                      [formControlName]="field.id"
+                      class="field-input area"></textarea>
+                      
+            <!-- Select Input -->
+            <select *ngSwitchCase="'select'"
+                    [id]="field.id"
+                    [formControlName]="field.id"
+                    class="field-input select-themed">
+              <option value="" disabled selected>Selecionar...</option>
+              <option *ngFor="let opt of field.options" [value]="opt.value">
+                {{ opt.label }}
+              </option>
+            </select>
+
+            <!-- Multiselect (Checkbox List) -->
+            <div *ngSwitchCase="'multiselect'" class="multiselect-container">
+              <div *ngFor="let opt of field.options" class="multiselect-item">
+                <label class="custom-checkbox small">
+                  <input type="checkbox" 
+                         [checked]="isItemSelected(field.id, opt.value)"
+                         (change)="toggleItem(field.id, opt.value)">
+                  <span class="checkmark"></span>
+                  <span class="opt-label">{{ opt.label }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Boolean Checkbox -->
+            <label *ngSwitchCase="'boolean'" class="custom-checkbox">
+              <input type="checkbox" [id]="field.id" [formControlName]="field.id">
+              <span class="checkmark"></span>
+            </label>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

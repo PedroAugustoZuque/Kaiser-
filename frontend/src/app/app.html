@@ -1,0 +1,50 @@
+<main class="app-container">
+  <!-- Tactical Sidebar Navigation -->
+  <nav class="tactical-sidebar">
+    <div class="sidebar-header">
+      <div class="ordo-hex-logo"></div>
+      <div class="ordo-text">
+        <span class="brand">ORDO</span>
+        <span class="sub">REALITAS</span>
+      </div>
+    </div>
+
+    <div class="sidebar-links">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <div class="nav-icon">⚓</div>
+        <span class="nav-label">TERMINAL</span>
+      </a>
+      
+      <a routerLink="/recrutamento" routerLinkActive="active" class="nav-item">
+        <div class="nav-icon">📄</div>
+        <span class="nav-label">AGENTE</span>
+      </a>
+
+      <!-- Future expansion icons -->
+      <div class="nav-item disabled" title="Em breve">
+        <div class="nav-icon">⚔️</div>
+        <span class="nav-label">MISSAO</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="connection-status">
+        <span class="pulse"></span>
+        <span class="label">LIVE</span>
+      </div>
+      <div class="system-time">{{ clock | date:'HH:mm:ss' }}</div>
+    </div>
+  </nav>
+
+  <!-- Main Viewport -->
+  <div class="main-viewport">
+    <router-outlet></router-outlet>
+  </div>
+</main>
+
+<style>
+  @keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.3; }
+  }
+</style>
