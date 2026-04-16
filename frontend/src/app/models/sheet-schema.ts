@@ -23,7 +23,8 @@ export interface SheetSchema {
   sections: SheetSection[];
 }
 
-export interface CharacterData {
+export interface CharacterSheetData {
+
   id: string;
   name: string;
   systemId: string; // Links back to a SheetSchema

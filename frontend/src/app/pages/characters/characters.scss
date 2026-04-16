@@ -1,90 +1,375 @@
-.page-container {
+// =============================================
+// RECRUTAMENTO OVERHAUL v2 - DOSSIER TERMINAL
+// =============================================
+
+.characters-page {
+  min-height: 100vh;
   padding: 40px;
+  background: radial-gradient(circle at 10% 10%, rgba(34, 255, 0, 0.03) 0%, transparent 40%);
 }
 
-.page-header {
+// ─── HUD BAR ────────────────────────────────
+
+.hud-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(34, 255, 0, 0.15);
   margin-bottom: 40px;
-  
-  h1 {
-    margin-bottom: 10px;
-  }
-  
-  p {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
+  position: sticky;
+  top: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0;
+    width: 100px; height: 1px;
+    background: var(--accent-primary);
+    box-shadow: 0 0 10px var(--accent-primary);
   }
 }
 
-.creator-container {
-  display: flex;
-  gap: 30px;
-  align-items: flex-start;
+.hud-left {
+  .hud-tag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--accent-primary);
+    opacity: 0.6;
+    letter-spacing: 2.5px;
+    margin-bottom: 6px;
+  }
+  .hud-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .hud-pip { width: 4px; height: 20px; background: var(--accent-primary); box-shadow: 0 0 8px var(--accent-primary); }
+    h1 { font-size: 1.4rem; color: #fff; margin: 0; letter-spacing: 2px; }
+    .hud-div { color: rgba(255, 255, 255, 0.1); margin: 0 10px; }
+    .hud-level { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-primary); opacity: 0.8; letter-spacing: 1px; }
+  }
+}
 
-  @media (max-width: 900px) {
+.hud-right {
+  .hud-status-group {
+    display: flex;
     flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-family: var(--font-mono);
+  }
+  .hud-status {
+    font-size: 0.65rem;
+    color: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 1.5px;
+
+    .status-dot { width: 6px; height: 6px; background: var(--accent-primary); border-radius: 50%; }
+  }
+  .hud-time { font-size: 0.8rem; color: rgba(255, 255, 255, 0.3); }
+}
+
+// ─── CREATOR LAYOUT ─────────────────────────
+
+.creator-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
   }
 }
 
-.creator-sidebar {
-  flex: 0 0 320px;
-  width: 100%;
-}
+// ─── SIDEBAR: DOSSIER CONTROLS ──────────────
 
-.creator-main {
-  flex: 1;
-  width: 100%;
-}
-
-.form-group {
-  margin-bottom: 20px;
-  
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    letter-spacing: 1px;
-    font-weight: 600;
-  }
-}
-
-.w-100 {
-  width: 100%;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px dashed var(--border-glass);
-  text-align: center;
-  color: var(--text-secondary);
-  
-  &:hover {
-    border-style: solid;
-    border-color: var(--accent-gold);
-    color: var(--accent-gold);
-    background: rgba(195, 155, 86, 0.1);
-  }
-}
-
-.character-preview {
-  margin-top: 20px;
-  margin-bottom: 20px;
+.sidebar-panel {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  position: sticky;
+  top: 120px;
 
-  .preview-img {
-    width: 140px;
-    height: 140px;
-    border-radius: 8px;
-    border: 2px solid var(--accent-gold);
-    background-size: cover;
-    background-position: center;
-    box-shadow: var(--shadow-deep);
+  .panel-header {
+    padding: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    .panel-tag {
+      font-family: var(--font-mono);
+      font-size: 0.55rem;
+      color: var(--accent-primary);
+      opacity: 0.5;
+      letter-spacing: 4px;
+      margin-bottom: 8px;
+    }
+    .panel-title {
+      font-size: 1.1rem;
+      color: #fff;
+      letter-spacing: 3px;
+      margin: 0;
+    }
+  }
+
+  .panel-body {
+    padding: 25px;
+  }
+
+  .form-section {
+    margin-bottom: 25px;
+  }
+
+  .field-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
   }
 }
 
-.actions {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.05);
+// ─── TERMINAL INPUTS ────────────────────────
+
+.input-wrap, .select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s;
+
+  &:focus-within {
+    border-color: var(--accent-primary-dim);
+    box-shadow: inset 0 0 10px rgba(34, 255, 0, 0.05);
+  }
 }
+
+.input-icon {
+  padding-left: 15px;
+  font-family: var(--font-mono);
+  color: var(--accent-primary);
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.terminal-input, .terminal-select {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 12px 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  &:focus { outline: none; }
+  &::placeholder { color: rgba(255, 255, 255, 0.15); }
+}
+
+.terminal-select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 15px;
+  pointer-events: none;
+  font-size: 0.6rem;
+  color: var(--accent-primary);
+  opacity: 0.5;
+}
+
+// ─── PORTRAIT PREVIEW ───────────────────────
+
+.portrait-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.portrait-preview {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: cover;
+  background-position: center;
+  background-color: #000;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+
+  &.empty::after {
+    content: 'REGISTRO_VISUAL_PENDENTE';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: rgba(34, 255, 0, 0.15);
+    background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(34, 255, 0, 0.02) 10px, rgba(34, 255, 0, 0.02) 20px);
+  }
+
+  .scanline {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: rgba(34, 255, 0, 0.1);
+    box-shadow: 0 0 10px rgba(34, 255, 0, 0.2);
+    animation: portraitScan 3s linear infinite;
+    z-index: 2;
+  }
+
+  .portrait-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 20%, rgba(0, 0, 0, 0.5) 100%);
+    z-index: 1;
+  }
+
+  .corner {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-color: var(--accent-primary);
+    border-style: solid;
+    z-index: 3;
+    opacity: 0.5;
+
+    &.t-l { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+    &.t-r { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+    &.b-l { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; }
+    &.b-r { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+  }
+}
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(34, 255, 0, 0.05);
+  border: 1px dashed var(--accent-primary-dim);
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  svg { width: 14px; height: 14px; }
+  &:hover { background: var(--accent-primary); color: #000; border-style: solid; }
+}
+
+// ─── ACTIONS ────────────────────────────────
+
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 15px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+
+  &.primary {
+    background: transparent;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--accent-primary);
+      color: #000;
+      box-shadow: 0 0 20px rgba(34, 255, 0, 0.4);
+    }
+    
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &.secondary {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    &:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+  }
+}
+
+// ─── TERMINAL LOGS ──────────────────────────
+
+.panel-footer {
+  padding: 20px 25px;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.terminal-stdout {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--accent-primary);
+  opacity: 0.4;
+  line-height: 1.6;
+
+  .log-line {
+    white-space: nowrap;
+    overflow: hidden;
+    width: 0;
+    animation: typing 2s steps(40, end) forwards;
+    
+    &:nth-child(2) { animation-delay: 1s; }
+    &:nth-child(3) { animation-delay: 2s; }
+  }
+}
+
+// ─── MAIN: DYNAMIC SHEET ────────────────────
+
+.sheet-container {
+  padding: 40px;
+  min-height: calc(100vh - 200px);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--accent-primary), transparent);
+    opacity: 0.3;
+  }
+}
+
+// ─── ANIMATIONS ─────────────────────────────
+
+@keyframes portraitScan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+.pulse { animation: pulse 2s infinite; }

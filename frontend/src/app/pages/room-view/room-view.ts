@@ -4,15 +4,20 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RoomService } from '../../services/room/room.service';
 import { IdentityService } from '../../services/identity/identity.service';
 import { CharacterService } from '../../services/character/character';
-import { RoomDetails, Participant, DiceRoll } from '../../models/room';
-import { CharacterData } from '../../models/sheet-schema';
+import { RoomDetails, Participant, DiceRoll, Token, MapState } from '../../models/room';
+import { CharacterSheetData } from '../../models/sheet-schema';
+
 import { interval, Subscription, startWith, switchMap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { VttMap } from '../../components/vtt-map/vtt-map';
+import { DynamicSheet } from '../../components/dynamic-sheet/dynamic-sheet';
+import { ORDEM_PARANORMAL_SCHEMA } from '../../models/ordem-paranormal.schema';
+
 
 @Component({
   selector: 'app-room-view',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, VttMap, DynamicSheet],
   templateUrl: './room-view.html',
   styleUrl: './room-view.scss'
 })
@@ -22,11 +27,28 @@ export class RoomView implements OnInit, OnDestroy {
   currentUser: string | null = null;
   userRole: 'GM' | 'Player' | null = null;
   
+  ordemSchema = ORDEM_PARANORMAL_SCHEMA;
+
+  // VTT Config
+  gridSizes = [35, 50, 70, 100, 140, 200];
+  showMapConfig = false;
+
+  // Sheet Panel State
+  showSheetPanel = false;
+  activeParticipantSheet: CharacterSheetData | null = null;
+
+  
+  selectedBonus = 0;
+
+
+  
   // Dice State
+
   diceInput: string = '';
   
   // Assignment State
-  availableDossiers: CharacterData[] = [];
+  availableDossiers: CharacterSheetData[] = [];
+
   showAssignModal = false;
   selectedParticipant: Participant | null = null;
   
@@ -93,8 +115,11 @@ export class RoomView implements OnInit, OnDestroy {
 
   // --- Dice Logic ---
   quickRoll(sides: number) {
-    this.performRoll(`${sides}`);
+    const sign = this.selectedBonus >= 0 ? '+' : '';
+    const cmd = `1d${sides}${this.selectedBonus !== 0 ? sign + this.selectedBonus : ''}`;
+    this.performRoll(cmd);
   }
+
 
   handleTerminalCommand() {
     if (!this.diceInput.trim()) return;
@@ -102,8 +127,9 @@ export class RoomView implements OnInit, OnDestroy {
     this.diceInput = '';
   }
 
-  private performRoll(command: string) {
+  private performRoll(command: string, label?: string) {
     if (!this.roomId || !this.currentUser) return;
+
 
     // Basic dX parser (simple for now: [count]d[sides])
     const regex = /(\d+)?d(\d+)/g;
@@ -123,9 +149,10 @@ export class RoomView implements OnInit, OnDestroy {
 
     if (rolls.length === 0) return;
 
-    const resultText = `ROLOU ${command}: [${rolls.join(', ')}] = ${total}`;
+    const resultText = label ? `TESTE DE ${label.toUpperCase()}: ${command} -> [${rolls.join(', ')}] = ${total}` : `ROLOU ${command}: [${rolls.join(', ')}] = ${total}`;
     
     // GM rolls are private, players are public as requested
+
     const isPrivate = this.userRole === 'GM';
 
     this.roomService.saveRoll(this.roomId, {
@@ -159,13 +186,69 @@ export class RoomView implements OnInit, OnDestroy {
     return this.roomDetails.rolls.filter(r => !r.isPrivate || r.userName === this.currentUser || this.userRole === 'GM');
   }
 
-  openCharacter(p: Participant) {
-    if (!p.characterId) return;
-    this.router.navigate(['/recrutamento'], { queryParams: { id: p.characterId } });
+  // --- VTT Sync ---
+  syncMap() {
+    if (!this.roomId || !this.roomDetails || this.userRole !== 'GM') return;
+    this.roomService.updateMapState(this.roomId, this.roomDetails.map).subscribe();
   }
 
+  onTokenMoved(token: Token) {
+    if (!this.roomId || !this.roomDetails) return;
+    
+    // Update local state first for responsiveness
+    const idx = this.roomDetails.map.tokens.findIndex(t => t.id === token.id);
+    if (idx !== -1) {
+      this.roomDetails.map.tokens[idx] = token;
+    }
+
+    // Sync to server if allowed
+    if (this.userRole === 'GM' || token.type === 'agent') {
+      this.syncMap();
+    }
+  }
+
+  addToken(name: string, type: any) {
+    if (!name || !this.roomDetails) return;
+    
+    const newToken: Token = {
+      id: 'token-' + Date.now(),
+      name: name,
+      type: type,
+      x: 100, y: 100, // Default drop position
+      size: 1,
+      portraitUrl: '', // Default placeholder
+      currentHp: 10,
+      maxHp: 10,
+      isVisible: true
+    };
+
+    if (!this.roomDetails.map.tokens) {
+      this.roomDetails.map.tokens = [];
+    }
+
+    this.roomDetails.map.tokens.push(newToken);
+    this.syncMap();
+  }
+
+  openCharacter(p: Participant) {
+    if (!p.characterId) return;
+    
+    this.characterService.getAgent(p.characterId).subscribe(agent => {
+      this.activeParticipantSheet = agent;
+      this.showSheetPanel = true;
+    });
+  }
+
+  onSheetRoll(event: { field: string, value: any }) {
+    // If value is a number, we assume it's an attribute/skill to roll d20 + value
+    const bonus = typeof event.value === 'number' ? event.value : 0;
+    const diceCommand = `1d20${bonus >= 0 ? '+' : ''}${bonus}`;
+    this.performRoll(diceCommand, event.field);
+  }
+
+
   getAssignedCharacterName(charId?: string) {
-    // Ideally we'd have a map of charId -> Name
-    return charId ? 'AGENTE VINCULADO' : 'SEM FICHA';
+    return charId ? 'AGENTE VINCULADO' : '';
   }
 }
+

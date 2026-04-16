@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { CharacterData, SheetSchema } from '../../models/sheet-schema';
+import { CharacterSheetData, SheetSchema } from '../../models/sheet-schema';
+
 
 @Component({
   selector: 'app-dynamic-sheet',
@@ -12,10 +13,13 @@ import { CharacterData, SheetSchema } from '../../models/sheet-schema';
 })
 export class DynamicSheet implements OnChanges {
   @Input({ required: true }) schema!: SheetSchema;
-  @Input({ required: true }) data!: CharacterData;
+  @Input({ required: true }) data!: CharacterSheetData;
+
   @Output() dataChanged = new EventEmitter<Record<string, any>>();
+  @Output() rollClicked = new EventEmitter<{ field: string, value: any }>();
 
   sheetForm!: FormGroup;
+
 
   constructor(private fb: FormBuilder) {}
 

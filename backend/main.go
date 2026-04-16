@@ -62,7 +62,15 @@ func main() {
 	// API Routes
 	v1 := r.Group("/api/v1")
 	{
+		// Auth Routes
+		auth := v1.Group("/auth")
+		{
+			auth.POST("/login", handlers.Login)
+			auth.POST("/register", handlers.Register)
+		}
+
 		v1.GET("/catalogs", handlers.GetCatalogs)
+
 		v1.GET("/agents", handlers.GetAgents)
 		v1.GET("/agents/:id", handlers.GetAgent)
 		v1.POST("/agents", handlers.SaveAgent)
@@ -74,12 +82,15 @@ func main() {
 		v1.POST("/rooms/join", handlers.JoinRoom)
 		v1.POST("/rooms/:id/assign", handlers.AssignCharacter)
 		v1.POST("/rooms/:id/roll", handlers.SaveRoll)
+		v1.PUT("/rooms/:id/map", handlers.UpdateMapState)
 	}
 
-	port := ":8080"
+
+	port := "0.0.0.0:8080"
 	fmt.Printf("\033[32m> CRIS TERMINAL ACTIVE ON PORT %s. STATUS: SECURE.\033[0m\n", port)
 	
 	if err := r.Run(port); err != nil {
 		log.Fatal("Failed to start CRIS system: ", err)
 	}
+
 }

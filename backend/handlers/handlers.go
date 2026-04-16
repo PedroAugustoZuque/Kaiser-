@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"database/sql"
 	"net/http"
 	"rpg-manager-backend/database"
 	"rpg-manager-backend/models"
 
 	"github.com/gin-gonic/gin"
 )
+
+
 
 func GetCatalogs(c *gin.Context) {
 	var skills []models.Skill
@@ -37,13 +40,22 @@ func GetCatalogs(c *gin.Context) {
 }
 
 func GetAgents(c *gin.Context) {
+	playerFilter := c.Query("player")
 	var agents []models.Agent
-	rows, err := database.DB.Query("SELECT id, name, player, origin_id, class_id, trilha_id, nex, portrait_url, fields_data FROM agents")
+	var rows *sql.Rows
+	var err error
+
+	if playerFilter != "" {
+		rows, err = database.DB.Query("SELECT id, name, player, origin_id, class_id, trilha_id, nex, portrait_url, fields_data FROM agents WHERE player = ?", playerFilter)
+	} else {
+		rows, err = database.DB.Query("SELECT id, name, player, origin_id, class_id, trilha_id, nex, portrait_url, fields_data FROM agents")
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer rows.Next()
+	defer rows.Close()
 
 	for rows.Next() {
 		var a models.Agent
@@ -53,6 +65,7 @@ func GetAgents(c *gin.Context) {
 
 	c.JSON(http.StatusOK, agents)
 }
+
 
 func SaveAgent(c *gin.Context) {
 	var agent models.Agent

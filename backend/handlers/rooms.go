@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/rand"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"rpg-manager-backend/database"
@@ -11,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
 
 func GenerateInviteCode() string {
 	b := make([]byte, 3)
@@ -42,13 +44,18 @@ func CreateRoom(c *gin.Context) {
 
 	// Add GM as participant
 	participantQuery := `INSERT INTO room_participants (room_id, user_name, role) VALUES (?, ?, ?)`
-	_, _ = database.DB.Exec(participantQuery, roomID, input.GMName, "GM")
+	_, err = database.DB.Exec(participantQuery, roomID, input.GMName, "GM")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Falha ao vincular mestre: " + err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"id":         roomID,
 		"inviteCode": inviteCode,
 	})
 }
+
 
 func JoinRoom(c *gin.Context) {
 	var input struct {
@@ -101,6 +108,7 @@ func GetRoom(c *gin.Context) {
 	var participants []models.Participant
 	rows, err := database.DB.Query("SELECT room_id, user_name, role, character_id FROM room_participants WHERE room_id = ?", id)
 	if err == nil {
+		defer rows.Close()
 		for rows.Next() {
 			var p models.Participant
 			var charID sql.NullString
@@ -116,6 +124,7 @@ func GetRoom(c *gin.Context) {
 	var rolls []models.DiceRoll
 	rollRows, err := database.DB.Query("SELECT id, room_id, user_name, dice_string, result_text, is_private, created_at FROM dice_rolls WHERE room_id = ? ORDER BY created_at ASC", id)
 	if err == nil {
+		defer rollRows.Close()
 		for rollRows.Next() {
 			var r models.DiceRoll
 			var isPrivate int
@@ -125,12 +134,74 @@ func GetRoom(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"room":         room,
-		"participants": participants,
-		"rolls":        rolls,
+	// Get Map State
+	var m models.MapState
+	var tokensData string
+	err = database.DB.QueryRow(`
+		SELECT room_id, background_url, grid_size, grid_color, opacity, offset_x, offset_y, zoom, tokens_data 
+		FROM room_map_state WHERE room_id = ?`, id).
+		Scan(&m.RoomID, &m.Background, &m.GridSize, &m.GridColor, &m.Opacity, &m.OffsetX, &m.OffsetY, &m.Zoom, &tokensData)
+
+	if err != nil {
+		// Default map state if not found or table doesn't exist yet
+		m = models.MapState{
+			RoomID:    id,
+			GridSize:  70,
+			GridColor: "rgba(255,255,255,0.2)",
+			Opacity:   0.5,
+			Zoom:      1.0,
+			Tokens:    []models.Token{},
+		}
+		// Async attempt to initialize row if it doesn't exist
+		go func() {
+			_, _ = database.DB.Exec("INSERT OR IGNORE INTO room_map_state (room_id, grid_size, grid_color, opacity, zoom, tokens_data) VALUES (?, ?, ?, ?, ?, ?)",
+				id, 70, m.GridColor, 0.5, 1.0, "[]")
+		}()
+	} else {
+		_ = json.Unmarshal([]byte(tokensData), &m.Tokens)
+	}
+
+
+	c.JSON(http.StatusOK, models.RoomDetails{
+		Room:         room,
+		Participants: participants,
+		Rolls:        rolls,
+		Map:          m,
 	})
 }
+
+func UpdateMapState(c *gin.Context) {
+	var m models.MapState
+	if err := c.ShouldBindJSON(&m); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tokensJSON, _ := json.Marshal(m.Tokens)
+
+	query := `
+	INSERT INTO room_map_state (room_id, background_url, grid_size, grid_color, opacity, offset_x, offset_y, zoom, tokens_data)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	ON CONFLICT(room_id) DO UPDATE SET
+		background_url=excluded.background_url,
+		grid_size=excluded.grid_size,
+		grid_color=excluded.grid_color,
+		opacity=excluded.opacity,
+		offset_x=excluded.offset_x,
+		offset_y=excluded.offset_y,
+		zoom=excluded.zoom,
+		tokens_data=excluded.tokens_data;
+	`
+
+	_, err := database.DB.Exec(query, m.RoomID, m.Background, m.GridSize, m.GridColor, m.Opacity, m.OffsetX, m.OffsetY, m.Zoom, string(tokensJSON))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "map_updated"})
+}
+
 
 func AssignCharacter(c *gin.Context) {
 	roomID := c.Param("id")

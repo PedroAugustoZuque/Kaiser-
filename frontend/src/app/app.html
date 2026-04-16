@@ -1,38 +1,100 @@
 <main class="app-container">
   <!-- Tactical Sidebar Navigation -->
-  <nav class="tactical-sidebar">
-    <div class="sidebar-header">
-      <div class="ordo-hex-logo"></div>
-      <div class="ordo-text">
-        <span class="brand">ORDO</span>
-        <span class="sub">REALITAS</span>
+  <nav class="tactical-sidebar" [class.expanded]="sidebarExpanded"
+       (mouseenter)="sidebarExpanded = true"
+       (mouseleave)="sidebarExpanded = false">
+
+    <!-- Logo Section -->
+    <div class="sidebar-brand">
+      <div class="hex-logo">
+        <svg viewBox="0 0 40 46" fill="none">
+          <path d="M20 1L38 11V33L20 43L2 33V11L20 1Z"
+                stroke="var(--accent-kaiser)" stroke-width="1.5" fill="rgba(188,19,254,0.05)"/>
+          <path d="M20 8L32 15V29L20 36L8 29V15L20 8Z"
+                fill="rgba(34,255,0,0.08)"/>
+          <text x="20" y="25" text-anchor="middle" font-family="JetBrains Mono" font-size="8"
+                fill="var(--accent-kaiser)" font-weight="bold">KSR</text>
+
+        </svg>
       </div>
+      <div class="brand-text">
+        <span class="brand-name">KAISER</span>
+        <span class="brand-sub">SISTEMA AVANÇADO</span>
+      </div>
+
     </div>
 
-    <div class="sidebar-links">
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-        <div class="nav-icon">⚓</div>
+    <div class="sidebar-divider"></div>
+
+    <!-- Navigation Links -->
+    <div class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" title="Terminal Central">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+            <path d="M6 8l3 3-3 3M11 14h4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <span class="nav-label">TERMINAL</span>
-      </a>
-      
-      <a routerLink="/recrutamento" routerLinkActive="active" class="nav-item">
-        <div class="nav-icon">📄</div>
-        <span class="nav-label">AGENTE</span>
+        <div class="active-pip"></div>
       </a>
 
-      <!-- Future expansion icons -->
-      <div class="nav-item disabled" title="Em breve">
-        <div class="nav-icon">⚔️</div>
-        <span class="nav-label">MISSAO</span>
+      <a routerLink="/recrutamento" routerLinkActive="active" class="nav-link" title="Dossiês">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1"/>
+            <path d="M9 12h6M9 16h4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">AGENTE</span>
+        <div class="active-pip"></div>
+      </a>
+
+      <div class="nav-link disabled" title="Em breve">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+        </div>
+        <span class="nav-label">MISSÃO</span>
+        <span class="soon-badge">EM BREVE</span>
       </div>
+
+      <div class="nav-link disabled" title="Em breve">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l3 3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">ARQUIVO</span>
+        <span class="soon-badge">EM BREVE</span>
+      </div>
+
+      <div class="sidebar-spacer" style="flex-grow: 1;"></div>
+
+      <a class="nav-link logout-link" (click)="logout()" title="Encerrar Sessão">
+        <div class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">SAIR</span>
+      </a>
     </div>
 
+
+    <!-- Footer Status -->
     <div class="sidebar-footer">
-      <div class="connection-status">
-        <span class="pulse"></span>
-        <span class="label">LIVE</span>
+      <div class="status-row">
+        <div class="live-dot"></div>
+        <span class="status-label">SISTEMA ATIVO</span>
       </div>
-      <div class="system-time">{{ clock | date:'HH:mm:ss' }}</div>
+      <div class="clock-display">{{ clock | date:'HH:mm:ss' }}</div>
+      <div class="version-tag">v2.4.1 // CRIS</div>
     </div>
   </nav>
 
