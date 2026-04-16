@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { CharacterService } from '../../services/character/character';
 import { IdentityService } from '../../services/identity/identity.service';
 import { RoomService } from '../../services/room/room.service';
-import { CharacterData } from '../../models/sheet-schema';
+import { CharacterSheetData } from '../../models/sheet-schema';
+
 import { Room } from '../../models/room';
 import { FormsModule } from '@angular/forms';
 
@@ -16,13 +17,14 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './dashboard.scss',
 })
 export class Dashboard implements OnInit {
-  agents: CharacterData[] = [];
+  agents: CharacterSheetData[] = [];
+
   rooms: Room[] = [];
   loading = true;
   
   // Identity State
+  // Identity State
   userName: string | null = null;
-  tempName: string = '';
   
   // Room Modals/Inputs
   showCreateModal = false;
@@ -41,16 +43,6 @@ export class Dashboard implements OnInit {
     this.userName = this.identityService.getDisplayName();
     if (this.userName) {
       this.loadAll();
-    } else {
-      this.loading = false;
-    }
-  }
-
-  saveIdentity() {
-    if (this.tempName.trim()) {
-      this.identityService.setDisplayName(this.tempName.trim());
-      this.userName = this.tempName.trim();
-      this.loadAll();
     }
   }
 
@@ -62,6 +54,7 @@ export class Dashboard implements OnInit {
     }
   }
 
+
   loadRooms(user: string) {
     this.roomService.listUserRooms(user).subscribe(data => {
       this.rooms = data;
@@ -70,11 +63,17 @@ export class Dashboard implements OnInit {
 
   createRoom() {
     if (this.newRoomName.trim() && this.userName) {
-      this.roomService.createRoom(this.newRoomName.trim(), this.userName).subscribe(res => {
-        this.showCreateModal = false;
-        this.newRoomName = '';
-        this.loadRooms(this.userName!);
-        this.router.navigate(['/sessao', res.id]);
+      this.roomService.createRoom(this.newRoomName.trim(), this.userName).subscribe({
+        next: (res) => {
+          this.showCreateModal = false;
+          this.newRoomName = '';
+          this.loadRooms(this.userName!);
+          this.router.navigate(['/sessao', res.id]);
+        },
+        error: (err) => {
+          console.error(err);
+          alert('FALHA NA OPERAÇÃO: Não foi possível criar a mesa. Verifique a conexão com o terminal.');
+        }
       });
     }
   }
@@ -88,10 +87,14 @@ export class Dashboard implements OnInit {
           this.loadRooms(this.userName!);
           this.router.navigate(['/sessao', res.id]);
         },
-        error: () => alert('Código inválido ou expirado.')
+        error: (err) => {
+          console.error(err);
+          alert('CÓDIGO DE ACESSO INVÁLIDO: Decodificação falhou ou permissão negada.');
+        }
       });
     }
   }
+
 
   onRoomClick(room: Room) {
     this.router.navigate(['/sessao', room.id]);
@@ -99,8 +102,9 @@ export class Dashboard implements OnInit {
 
   loadAgents() {
     this.loading = true;
-    this.characterService.listAgents().subscribe({
+    this.characterService.listAgents(this.userName || undefined).subscribe({
       next: (data) => {
+
         this.agents = data;
         this.loading = false;
       },
@@ -111,7 +115,8 @@ export class Dashboard implements OnInit {
     });
   }
 
-  onAgentDoubleClick(agent: CharacterData) {
+  onAgentDoubleClick(agent: CharacterSheetData) {
+
     // Navigate to character creator with the agent ID as a parameter
     this.router.navigate(['/recrutamento'], { queryParams: { id: agent.id } });
   }

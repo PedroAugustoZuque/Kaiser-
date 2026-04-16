@@ -16,7 +16,11 @@
       <div [ngClass]="getLayoutClass(section.layout)">
         <!-- Loop through Fields -->
         <div *ngFor="let field of section.fields" class="field-container">
-          <label [for]="field.id" class="field-label">{{ field.label }}</label>
+          <label [for]="field.id" class="field-label" (click)="rollClicked.emit({field: field.label, value: sheetForm.get(field.id)?.value})">
+            {{ field.label }}
+            <span class="roll-hint" *ngIf="field.type === 'number' || field.type === 'select'">🎲</span>
+          </label>
+
           
           <ng-container [ngSwitch]="field.type">
             <!-- Number Input -->

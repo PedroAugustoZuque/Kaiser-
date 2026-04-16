@@ -1,59 +1,106 @@
-<div class="characters-page page-container">
-  <div class="page-header" style="border-bottom: 2px solid var(--accent-primary); margin-bottom: 30px; padding-bottom: 10px;">
-    <h1 style="margin: 0;">RECRUTAMENTO DE AGENTES</h1>
-    <p style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">Acesso restrito // Ordo Realitas // Nível 1</p>
-  </div>
-
-  <div class="creator-container">
-    <!-- Sidebar: Identity & Setup -->
-    <div class="creator-sidebar surface-glass">
-      <h3 class="section-title" style="color: var(--accent-primary); border-bottom: 1px solid var(--accent-primary-dim); margin-bottom: 15px;">Dossiê do Agente</h3>
-      
-      <div class="form-group">
-        <label style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">NOME OPERACIONAL</label>
-        <input type="text" class="field-input w-100" [(ngModel)]="currentCharacter.name" placeholder="Insira o nome do agente...">
+<div class="characters-page">
+  
+  <!-- TOP HUD BAR -->
+  <header class="hud-bar">
+    <div class="hud-left">
+      <div class="hud-tag">SISTEMA DE RECRUTAMENTO</div>
+      <div class="hud-title">
+        <span class="hud-pip"></span>
+        <h1>ARQUIVO DE AGENTES</h1>
+        <span class="hud-div">//</span>
+        <span class="hud-level">NÍVEL DE ACESSO 01</span>
       </div>
-
-      <div class="form-group" style="margin-top: 15px;">
-        <label style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">SISTEMA DE ANÁLISE</label>
-        <select class="field-input w-100" [(ngModel)]="selectedSchemaId" (change)="onSystemChange()">
-          <option *ngFor="let schema of availableSchemas" [value]="schema.id">{{ schema.name }}</option>
-        </select>
+    </div>
+    <div class="hud-right">
+      <div class="hud-status-group">
+        <div class="hud-status">
+          <span class="status-dot pulse"></span>
+          ENCRIPTAÇÃO ATIVA
+        </div>
+        <div class="hud-time">{{ clock | date:'HH:mm:ss' }}</div>
       </div>
+    </div>
+  </header>
 
-      <div class="form-group" style="margin-top: 15px;">
-        <label style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary);">UPLOAD DE RETRATO</label>
-        <div class="image-upload-box">
-          <input type="file" id="portrait-upload" accept="image/*" (change)="onImageUpload($event)" hidden>
-          <label for="portrait-upload" class="btn btn-secondary w-100" style="display: block; font-size: 0.8rem; text-align: center;">Vincular Arquivo</label>
+  <div class="creator-layout">
+    <!-- SIDEBAR: DOSSIER CONTROLS -->
+    <aside class="creator-sidebar">
+      <div class="sidebar-panel surface-glass">
+        <div class="panel-header">
+          <div class="panel-tag">PROTOCOLO CRIS</div>
+          <h3 class="panel-title">DOSSIÊ DO AGENTE</h3>
+        </div>
+
+        <div class="panel-body">
+          <div class="form-section">
+            <label class="field-label">NOME OPERACIONAL</label>
+            <div class="input-wrap">
+              <span class="input-icon">></span>
+              <input type="text" class="terminal-input" [(ngModel)]="currentCharacter.name" placeholder="NOME DO AGENTE...">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <label class="field-label">SISTEMA DE ANÁLISE</label>
+            <div class="select-wrap">
+              <select class="terminal-select" [(ngModel)]="selectedSchemaId" (change)="onSystemChange()">
+                <option *ngFor="let schema of availableSchemas" [value]="schema.id">{{ schema.name }}</option>
+              </select>
+              <span class="select-arrow">▼</span>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <label class="field-label">REGISTRO VISUAL</label>
+            <div class="portrait-upload-container">
+              <div class="portrait-preview" 
+                   [style.backgroundImage]="currentCharacter.portraitUrl ? 'url(' + currentCharacter.portraitUrl + ')' : 'none'"
+                   [class.empty]="!currentCharacter.portraitUrl">
+                <div class="scanline"></div>
+                <div class="portrait-overlay"></div>
+                <div class="corner t-l"></div>
+                <div class="corner t-r"></div>
+                <div class="corner b-l"></div>
+                <div class="corner b-r"></div>
+              </div>
+              <input type="file" id="portrait-upload" accept="image/*" (change)="onImageUpload($event)" hidden>
+              <label for="portrait-upload" class="upload-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                VINCULAR ARQUIVO
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-actions">
+            <button class="action-btn primary" (click)="saveCurrentAgent()" [disabled]="isSaving">
+              <span class="btn-text">{{ isSaving ? 'SINCRONIZANDO...' : 'FINALIZAR DOSSIÊ' }}</span>
+              <span class="btn-glitch"></span>
+            </button>
+            <button class="action-btn secondary" (click)="onDiscard()">
+              DESCARTAR ALTERAÇÕES
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-footer">
+          <div class="terminal-stdout">
+            <div class="log-line">> SYNCING WITH ORDO_MAIN...</div>
+            <div class="log-line">> ENCRYPTION: ACTIVE</div>
+            <div class="log-line">> STATUS: {{ isSaving ? 'UPLOADING...' : 'READY' }}</div>
+          </div>
         </div>
       </div>
-      
-      <div class="character-preview" *ngIf="currentCharacter.portraitUrl" style="margin-top: 15px; border: 1px solid var(--accent-primary-dim); padding: 5px;">
-        <div class="preview-img" [style.backgroundImage]="'url(' + currentCharacter.portraitUrl + ')'" style="height: 150px; background-size: cover; background-position: center; filter: grayscale(1) contrast(1.2);"></div>
-      </div>
-      
-      <div class="actions" style="margin-top: 25px; display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn w-100" style="font-size: 0.9rem;" (click)="saveCurrentAgent()" [disabled]="isSaving">
-          {{ isSaving ? 'SINCRONIZANDO...' : 'Finalizar Dossiê' }}
-        </button>
-        <button class="btn btn-secondary w-100" style="font-size: 0.8rem;" (click)="onDiscard()">
-          Descartar Alterações
-        </button>
-      </div>
+    </aside>
 
-      <div class="terminal-footer" style="margin-top: 30px; font-family: var(--font-mono); font-size: 0.6rem; color: var(--accent-secondary); opacity: 0.6;">
-        > SYNCING WITH ORDO_MAIN...<br>
-        > ENCRYPTION: ACTIVE<br>
-        > NO RECORDS FOUND.
-      </div>
-    </div>
-
-    <!-- Main Editor: The Dynamic Sheet -->
-    <div class="creator-main">
-       <app-dynamic-sheet [schema]="activeSchema" 
+    <!-- MAIN: DYNAMIC SHEET -->
+    <main class="creator-main">
+      <div class="sheet-container surface-glass">
+        <app-dynamic-sheet [schema]="activeSchema" 
                           [data]="currentCharacter"
                           (dataChanged)="onDataChanged($event)"></app-dynamic-sheet>
-    </div>
+      </div>
+    </main>
   </div>
 </div>

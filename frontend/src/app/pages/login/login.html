@@ -1,0 +1,97 @@
+<div class="login-gate">
+  <!-- Dynamic Background Effects -->
+  <div class="kaiser-bg">
+    <div class="grid-overlay"></div>
+    <div class="glow-orb purple"></div>
+    <div class="glow-orb green"></div>
+  </div>
+
+  <div class="auth-box surface-glass">
+    <!-- Header with Kaiser Branding -->
+    <header class="auth-header">
+      <div class="kaiser-logo">
+        <svg viewBox="0 0 60 70" fill="none">
+           <path d="M30 2L56 17V50L30 65L4 50V17L30 2Z" 
+                 stroke="var(--accent-kaiser)" stroke-width="2" fill="rgba(188,19,254,0.05)"/>
+           <path d="M30 14L46 24V44L30 54L14 44V24L30 14Z" 
+                 stroke="var(--accent-primary)" stroke-width="1" stroke-dasharray="4 2"/>
+           <text x="30" y="38" text-anchor="middle" font-family="JetBrains Mono" 
+                 font-size="12" fill="var(--accent-kaiser)" font-weight="bold">KSR</text>
+        </svg>
+      </div>
+      <div class="auth-titles">
+        <div class="system-tag">SISTEMA KAISER // v2.4.1</div>
+        <h1 class="system-name">{{ isLogin ? 'IDENTIFICAÇÃO REQUERIDA' : 'NOVO REGISTRO' }}</h1>
+      </div>
+    </header>
+
+    <div class="auth-scan-line"></div>
+
+    <!-- Form Section -->
+    <form class="auth-form" (submit)="$event.preventDefault(); onSubmit()">
+
+      <div class="input-section">
+        <label class="field-label">NOME OPERACIONAL</label>
+        <div class="field-wrap">
+          <span class="field-icon">></span>
+          <input type="text" name="username" [(ngModel)]="credentials.username" 
+                 placeholder="ID DO AGENTE..." class="terminal-input" required>
+        </div>
+      </div>
+
+      <div class="input-section">
+        <label class="field-label">CÓDIGO DE ACESSO</label>
+        <div class="field-wrap">
+          <span class="field-icon">#</span>
+          <input type="password" name="password" [(ngModel)]="credentials.password" 
+                 placeholder="••••••••" class="terminal-input" required>
+        </div>
+      </div>
+
+      <!-- Remember Me Option -->
+      <div class="form-options" *ngIf="isLogin">
+        <label class="checkbox-container">
+          <input type="checkbox" name="remember" [(ngModel)]="credentials.rememberMe">
+          <span class="checkmark"></span>
+          MANTER CONEXÃO ATIVA (SESSÃO PROLONGADA)
+        </label>
+      </div>
+
+      <div class="error-msg" *ngIf="errorMessage">
+        <span class="error-pip">!</span>
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="auth-btn" [disabled]="loading">
+          <span class="btn-content" *ngIf="!loading">
+            {{ isLogin ? 'VINCULAR IDENTIDADE' : 'REGISTRAR AGENTE' }}
+          </span>
+          <span class="loading-spinner" *ngIf="loading">ANALISANDO...</span>
+          <div class="btn-glitch"></div>
+        </button>
+
+        <button type="button" class="mode-toggle" (click)="toggleMode()">
+          {{ isLogin ? '> NÃO POSSUO REGISTRO' : '> RETORNAR AO LOGIN' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Visual Footer Decor -->
+    <footer class="auth-footer">
+       <div class="status-grid">
+         <div class="status-item"><span class="label">ENC:</span> <span class="val">AES-256</span></div>
+         <div class="status-item"><span class="label">LOC:</span> <span class="val">ORDO_HQ</span></div>
+         <div class="status-item"><span class="label">NET:</span> <span class="val">LIVE</span></div>
+       </div>
+    </footer>
+  </div>
+
+  <!-- Perspective Overlay -->
+  <div class="ui-corners">
+    <div class="corner t-l"></div>
+    <div class="corner t-r"></div>
+    <div class="corner b-l"></div>
+    <div class="corner b-r"></div>
+  </div>
+</div>

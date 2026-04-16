@@ -64,3 +64,44 @@ type DiceRoll struct {
 	IsPrivate  bool   `json:"isPrivate" db:"is_private"`
 	CreatedAt  string `json:"createdAt" db:"created_at"`
 }
+
+type User struct {
+	ID           string `json:"id" db:"id"`
+	Username     string `json:"username" db:"username"`
+	PasswordHash string `json:"-" db:"password_hash"`
+	CreatedAt    string `json:"createdAt" db:"created_at"`
+}
+
+type Token struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Type        string  `json:"type"` // "agent", "monster", "item"
+	X           float64 `json:"x"`
+	Y           float64 `json:"y"`
+	Size        int     `json:"size"` // 1, 2, 3 (grid units)
+	PortraitUrl string  `json:"portraitUrl"`
+	CurrentHP   int     `json:"currentHp"`
+	MaxHP       int     `json:"maxHp"`
+	IsVisible   bool    `json:"isVisible"`
+}
+
+type MapState struct {
+	RoomID     string  `json:"roomId" db:"room_id"`
+	Background string  `json:"background" db:"background_url"`
+	GridSize   int     `json:"gridSize" db:"grid_size"`
+	GridColor  string  `json:"gridColor" db:"grid_color"`
+	Opacity    float64 `json:"opacity" db:"opacity"`
+	OffsetX    int     `json:"offsetX" db:"offset_x"`
+	OffsetY    int     `json:"offsetY" db:"offset_y"`
+	Zoom       float64 `json:"zoom" db:"zoom"`
+	Tokens     []Token `json:"tokens" db:"-"` // Stored as JSON or separate
+}
+
+type RoomDetails struct {
+	Room         Room          `json:"room"`
+	Participants []Participant `json:"participants"`
+	Rolls        []DiceRoll    `json:"rolls"`
+	Map          MapState      `json:"map"`
+}
+
+

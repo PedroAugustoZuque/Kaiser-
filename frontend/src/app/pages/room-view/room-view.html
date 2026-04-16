@@ -1,5 +1,21 @@
 <div class="room-page page-container" *ngIf="roomDetails">
+  <!-- Character Sheet Slide-out Panel -->
+  <div class="sheet-side-panel" [class.open]="showSheetPanel" *ngIf="activeParticipantSheet">
+    <div class="panel-header">
+      <button class="close-btn" (click)="showSheetPanel = false">✕</button>
+      <span class="header-tag">DOSSIÊ DO AGENTE</span>
+    </div>
+    <div class="panel-content">
+      <app-dynamic-sheet 
+        [schema]="ordemSchema" 
+        [data]="activeParticipantSheet"
+        (rollClicked)="onSheetRoll($event)">
+      </app-dynamic-sheet>
+    </div>
+  </div>
+
   <!-- Assignment Modal -->
+
   <div *ngIf="showAssignModal" class="modal-overlay">
     <div class="modal-content surface-glass assignment-modal">
       <h3>VINCULAR AGENTE A {{ selectedParticipant?.userName }}</h3>
@@ -13,96 +29,136 @@
     </div>
   </div>
 
-  <div class="room-header surface-glass">
+  <div class="room-header mission-header">
     <div class="header-main">
       <div class="status-indicator">
-        <span class="pulse-dot"></span>
-        <span class="status-text">CONEXÃO CRIPTOGRAFADA // {{ userRole }}</span>
+        <span class="status-dot"></span>
+        <span class="status-text">COORDENADAS DE MISSÃO // {{ userRole }}</span>
       </div>
       <h1 class="room-title">{{ roomDetails.room.name }}</h1>
-      <p class="gm-info">ORDEM REALITAS // MESTRE: {{ roomDetails.room.gmName }}</p>
     </div>
     
     <div class="header-actions">
-      <div class="invite-section" (click)="copyCode()" title="Clique para copiar">
-        <span class="label">CÓDIGO DE CONVITE</span>
+      <!-- VTT Quick Controls -->
+      <div class="vtt-quick-controls" *ngIf="userRole === 'GM'">
+        <select [(ngModel)]="roomDetails.map.gridSize" (change)="syncMap()" class="tactical-select">
+          <option *ngFor="let size of gridSizes" [value]="size">{{ size }}px</option>
+        </select>
+        <div class="offset-inputs">
+          <input type="number" [(ngModel)]="roomDetails.map.offsetX" (change)="syncMap()" placeholder="X" class="tactical-input-sm">
+          <input type="number" [(ngModel)]="roomDetails.map.offsetY" (change)="syncMap()" placeholder="Y" class="tactical-input-sm">
+        </div>
+      </div>
+
+      <div class="invite-section" (click)="copyCode()">
+        <span class="label">CONVITE</span>
         <span class="code">{{ roomDetails.room.inviteCode }}</span>
       </div>
-      <button class="btn btn-secondary btn-sm" (click)="exitRoom()">VOLTAR AO TERMINAL</button>
+      <button class="btn-tactical" (click)="exitRoom()">SAIR</button>
     </div>
   </div>
 
   <div class="room-layout">
     <!-- Left: Participants & Tactical Info -->
-    <aside class="room-sidebar">
+    <aside class="room-sidebar tactical-sidebar">
       <div class="sidebar-section">
-        <h3 class="section-title">ATIVOS EM CAMPO</h3>
+        <h3 class="section-title">EQUIPE OPERACIONAL</h3>
         
         <div class="participant-list">
-          <!-- GM Section -->
-          <div *ngFor="let p of gmParticipants" class="participant-item gm">
-            <div class="p-icon">M</div>
-            <div class="p-info">
-              <span class="p-name">{{ p.userName }}</span>
-              <span class="p-role">MESTRE DA MESA</span>
-            </div>
-          </div>
+          <div *ngFor="let p of roomDetails.participants" class="participant-card" [ngClass]="p.role.toLowerCase()">
+             <div class="p-avatar">
+               <span *ngIf="p.role === 'GM'">Ω</span>
+               <span *ngIf="p.role !== 'GM'">A</span>
+             </div>
+             <div class="p-details">
+               <div class="p-name">{{ p.userName }}</div>
+               <div class="p-sub">{{ p.role === 'GM' ? 'COORDENADOR' : (getAssignedCharacterName(p.characterId) || 'RESERVISTA') }}</div>
+             </div>
+             <div class="p-actions">
+               <button *ngIf="userRole === 'GM'" class="action-btn" (click)="openAssignModal(p)">VINCULAR</button>
+               <button *ngIf="p.characterId && (p.userName === currentUser || userRole === 'GM')" 
+                       class="action-btn dossier-btn" (click)="openCharacter(p)">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                 </svg>
+                 ABRIR DOSSIÊ
+               </button>
+             </div>
 
-          <!-- Players Section -->
-          <div *ngFor="let p of playerParticipants" class="participant-item player">
-            <div class="p-icon">P</div>
-            <div class="p-info">
-              <span class="p-name">{{ p.userName }}</span>
-              <span class="p-role">{{ getAssignedCharacterName(p.characterId) }}</span>
-            </div>
-            <div class="p-actions" style="margin-left: auto; display: flex; gap: 5px;">
-              <button *ngIf="userRole === 'GM'" class="btn-icon" (click)="openAssignModal(p)" title="Atribuir Personagem">⚓</button>
-              <button *ngIf="p.characterId && (p.userName === currentUser || userRole === 'GM')" 
-                      class="btn-icon" (click)="openCharacter(p)" title="Ver Ficha">📄</button>
-            </div>
           </div>
         </div>
       </div>
 
-      <div class="sidebar-section log-section" style="flex-grow: 1; display: flex; flex-direction: column;">
-        <h3 class="section-title">LOG DE EVENTOS</h3>
-        <div class="terminal-log" style="flex-grow: 1;">
-          <p *ngFor="let roll of getVisibleRolls()" [class.private-roll]="roll.isPrivate">
-            [{{ roll.createdAt | date:'HH:mm' }}] <span class="roll-user">{{ roll.userName }}</span>: 
-            <span class="roll-text">{{ roll.resultText }}</span>
-            <span *ngIf="roll.isPrivate" class="private-tag"> (PRIVADO)</span>
-          </p>
+      <div class="sidebar-section log-section">
+        <h3 class="section-title">TRANSMISSÃO DE DADOS</h3>
+        <div class="tactical-chat">
+          <div *ngFor="let roll of getVisibleRolls()" class="chat-msg" [class.private]="roll.isPrivate">
+            <span class="msg-time">[{{ roll.createdAt | date:'HH:mm' }}]</span>
+            <span class="msg-user">{{ roll.userName }}:</span>
+            <span class="msg-content">{{ roll.resultText }}</span>
+          </div>
         </div>
       </div>
     </aside>
 
-    <!-- Right: Tactical Dashboard & Dice -->
-    <main class="room-main surface-glass">
-      <div class="tactical-grid">
-        <div class="main-display">
-          <div class="placeholder-content">
-            <div class="glitch-icon"></div>
-            <h2>{{ userRole === 'GM' ? 'MONITORAMENTO DO MESTRE' : 'TERMINAL DO AGENTE' }}</h2>
-            <p>SISTEMA DE TRANSMISSÃO DE DADOS ATIVO. AGUARDANDO COMANDOS OPERACIONAIS.</p>
+    <!-- Right: VTT Map & Controls -->
+    <main class="room-main tactical-main">
+      <div class="vtt-wrapper">
+        <app-vtt-map 
+          [state]="roomDetails.map" 
+          [isGM]="userRole === 'GM'"
+          (tokenMoved)="onTokenMoved($event)"
+          (mapUpdated)="syncMap()">
+        </app-vtt-map>
+
+        <!-- Map Settings (GM Only) -->
+        <div class="map-settings-fab" *ngIf="userRole === 'GM'">
+          <button (click)="showMapConfig = !showMapConfig">🛠️</button>
+          <div class="config-panel" *ngIf="showMapConfig">
+            <label>URL DO MAPA</label>
+            <input type="text" [(ngModel)]="roomDetails.map.background" (change)="syncMap()" placeholder="https://...">
+            <label>OPACIDADE GRID</label>
+            <input type="range" [(ngModel)]="roomDetails.map.opacity" (change)="syncMap()" min="0" max="1" step="0.1">
+            
+            <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+            
+            <label>NOVO TOKEN</label>
+            <div class="add-token-form">
+              <input type="text" #tokenName placeholder="NOME...">
+              <select #tokenType>
+                <option value="agent">AGENTE</option>
+                <option value="monster">MONSTRO</option>
+                <option value="item">ITEM</option>
+              </select>
+              <button (click)="addToken(tokenName.value, tokenType.value); tokenName.value=''">ADICIONAR</button>
+            </div>
           </div>
         </div>
 
-        <!-- Dice Tray & Input -->
-        <div class="dice-terminal surface-glass">
-          <div class="dice-tray">
-             <button class="dice-btn d4" (click)="quickRoll(4)">d4</button>
-             <button class="dice-btn d6" (click)="quickRoll(6)">d6</button>
-             <button class="dice-btn d8" (click)="quickRoll(8)">d8</button>
-             <button class="dice-btn d10" (click)="quickRoll(10)">d10</button>
-             <button class="dice-btn d12" (click)="quickRoll(12)">d12</button>
-             <button class="dice-btn d20" (click)="quickRoll(20)">d20</button>
+      </div>
+
+      <!-- Action Footer -->
+      <footer class="tactical-footer">
+        <div class="dice-console">
+          <div class="bonus-selector">
+            <span class="selector-tag">BÔNUS: {{ selectedBonus >= 0 ? '+' : '' }}{{ selectedBonus }}</span>
+            <div class="selector-btns">
+              <button (click)="selectedBonus = selectedBonus - 1"> - </button>
+              <button (click)="selectedBonus = 0"> 0 </button>
+              <button (click)="selectedBonus = selectedBonus + 1"> + </button>
+            </div>
           </div>
-          <div class="terminal-input-row">
-            <span class="prompt">></span>
-            <input type="text" [(ngModel)]="diceInput" (keyup.enter)="handleTerminalCommand()" placeholder="ROLAR DADOS (ex: 3d20 + 2)..." class="terminal-input">
+          <div class="quick-dice">
+             <button *ngFor="let side of [4,6,8,10,12,20,100]" (click)="quickRoll(side)">D{{side}}</button>
+          </div>
+          <div class="terminal-row">
+            <span class="cursor">></span>
+            <input type="text" [(ngModel)]="diceInput" (keyup.enter)="handleTerminalCommand()" placeholder="INSIRA COMANDO DE ROLAGEM...">
           </div>
         </div>
-      </div>
+      </footer>
+
     </main>
   </div>
 </div>

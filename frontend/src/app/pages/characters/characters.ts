@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DynamicSheet } from '../../components/dynamic-sheet/dynamic-sheet';
-import { SheetSchema, CharacterData } from '../../models/sheet-schema';
+import { SheetSchema, CharacterSheetData } from '../../models/sheet-schema';
+
 import { ORDEM_PARANORMAL_SCHEMA } from '../../models/ordem-paranormal.schema';
 import { CLASSES, TRILHAS, RITUAIS } from '../../models/ordem-paranormal.data';
 import { CharacterService } from '../../services/character/character';
+import { IdentityService } from '../../services/identity/identity.service';
+
 
 @Component({
   selector: 'app-characters',
@@ -23,7 +26,7 @@ export class Characters implements OnInit {
 
   selectedSchemaId: string = 'ordem-paranormal';
 
-  currentCharacter: CharacterData = {
+  currentCharacter: CharacterSheetData = {
     id: 'char-' + Date.now(),
     name: 'Herói Sem Nome',
     systemId: 'ordem-paranormal',
@@ -31,13 +34,22 @@ export class Characters implements OnInit {
     fieldsData: {}
   };
 
+
   isSaving = false;
+  clock = new Date();
 
   constructor(
     private characterService: CharacterService,
+    private identityService: IdentityService,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) {
+
+    setInterval(() => {
+      this.clock = new Date();
+    }, 1000);
+  }
+
 
   ngOnInit(): void {
     // Check if we are editing an existing agent
@@ -122,10 +134,11 @@ export class Characters implements OnInit {
 
       // Remove rituals that are now above the current circle
       if (Array.isArray(data['rituais'])) {
-        data['rituais'] = data['rituais'].filter(ritualId => 
+        data['rituais'] = data['rituais'].filter((ritualId: string) => 
           filteredRituals.some(r => r.id === ritualId)
         );
       }
+
     }
   }
 
@@ -139,8 +152,10 @@ export class Characters implements OnInit {
 
   saveCurrentAgent() {
     this.isSaving = true;
-    this.characterService.saveAgent(this.currentCharacter).subscribe({
+    const playerName = this.identityService.getDisplayName() || 'Agente Anônimo';
+    this.characterService.saveAgent(this.currentCharacter, playerName).subscribe({
       next: () => {
+
         this.isSaving = false;
         alert('Dossiê sincronizado com sucesso!');
         this.router.navigate(['/dashboard']);

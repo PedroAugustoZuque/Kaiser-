@@ -1,21 +1,25 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { CharacterData } from '../../models/sheet-schema';
+import { CharacterSheetData } from '../../models/sheet-schema';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class CharacterService {
-  private apiUrl = 'http://localhost:8080/api/v1/agents';
+  private apiUrl = 'http://10.0.110.7:8080/api/v1/agents';
+
 
   constructor(private http: HttpClient) {}
 
   /**
-   * List all saved agents
+   * List saved agents for a specific player
    */
-  listAgents(): Observable<CharacterData[]> {
-    return this.http.get<any[]>(this.apiUrl).pipe(
+  listAgents(playerName?: string): Observable<CharacterSheetData[]> {
+
+    const url = playerName ? `${this.apiUrl}?player=${playerName}` : this.apiUrl;
+    return this.http.get<any[]>(url).pipe(
       map(agents => agents.map(a => this.mapToFrontend(a)))
     );
   }
@@ -23,7 +27,8 @@ export class CharacterService {
   /**
    * Get a single agent by ID
    */
-  getAgent(id: string): Observable<CharacterData> {
+  getAgent(id: string): Observable<CharacterSheetData> {
+
     return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
       map(a => this.mapToFrontend(a))
     );
@@ -32,8 +37,9 @@ export class CharacterService {
   /**
    * Save (Create or Update) an agent
    */
-  saveAgent(char: CharacterData): Observable<any> {
-    const backendAgent = this.mapToBackend(char);
+  saveAgent(char: CharacterSheetData, playerName: string): Observable<any> {
+
+    const backendAgent = this.mapToBackend(char, playerName);
     return this.http.post(this.apiUrl, backendAgent);
   }
 
@@ -46,7 +52,8 @@ export class CharacterService {
 
   // --- Mappers ---
 
-  private mapToFrontend(backend: any): CharacterData {
+  private mapToFrontend(backend: any): CharacterSheetData {
+
     return {
       id: backend.id,
       name: backend.name,
@@ -56,11 +63,12 @@ export class CharacterService {
     };
   }
 
-  private mapToBackend(frontend: CharacterData): any {
+  private mapToBackend(frontend: CharacterSheetData, playerName: string): any {
+
     return {
       id: frontend.id,
       name: frontend.name,
-      player: 'Agente', // Default for now
+      player: playerName,
       originId: frontend.fieldsData['origin'] || '',
       classId: frontend.fieldsData['class'] || 'combatente',
       trilhaId: frontend.fieldsData['trilha'] || '',
@@ -70,3 +78,4 @@ export class CharacterService {
     };
   }
 }
+

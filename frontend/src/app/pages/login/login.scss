@@ -1,0 +1,333 @@
+// =============================================
+// KAISER AUTHENTICATION GATE - UI v2.0
+// =============================================
+
+.login-gate {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-pure);
+  overflow: hidden;
+  z-index: 3000;
+}
+
+// ─── BACKGROUND EFFECTS ─────────────────────
+
+.kaiser-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  .grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(34, 255, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 255, 0, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle, black, transparent 80%);
+  }
+
+  .glow-orb {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(150px);
+    opacity: 0.15;
+    animation: orbFloat 20s infinite alternate;
+
+    &.purple {
+      background: var(--accent-kaiser);
+      top: -100px; right: -100px;
+    }
+    &.green {
+      background: var(--accent-primary);
+      bottom: -100px; left: -100px;
+      animation-delay: -10s;
+    }
+  }
+}
+
+// ─── AUTH BOX ───────────────────────────────
+
+.auth-box {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+  z-index: 10;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  padding: 50px 40px;
+  border: 1px solid rgba(188, 19, 254, 0.2); // Kaiser Purple Border
+  box-shadow: 0 0 50px rgba(188, 19, 254, 0.1);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-kaiser), var(--accent-primary));
+  }
+}
+
+.auth-header {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 40px;
+
+  .kaiser-logo {
+    width: 60px; height: 70px;
+    filter: drop-shadow(0 0 10px var(--accent-kaiser-dim));
+    animation: logoPulse 4s ease-in-out infinite;
+  }
+
+  .system-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--accent-kaiser);
+    letter-spacing: 3px;
+    margin-bottom: 5px;
+    opacity: 0.8;
+  }
+
+  .system-name {
+    font-size: 1.3rem;
+    color: #fff;
+    letter-spacing: 2px;
+    margin: 0;
+  }
+}
+
+.auth-scan-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: rgba(188, 19, 254, 0.4);
+  box-shadow: 0 0 15px var(--accent-kaiser);
+  animation: scanMove 4s linear infinite;
+  z-index: 5;
+  pointer-events: none;
+}
+
+// ─── FORM ELEMENTS ──────────────────────────
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.field-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s;
+
+  &:focus-within {
+    border-color: var(--accent-kaiser-dim);
+    box-shadow: inset 0 0 15px rgba(188, 19, 254, 0.05);
+  }
+
+  .field-icon {
+    padding-left: 15px;
+    font-family: var(--font-mono);
+    color: var(--accent-kaiser);
+    font-size: 1rem;
+    opacity: 0.6;
+  }
+}
+
+.terminal-input {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  padding: 15px;
+  letter-spacing: 2px;
+
+  &:focus { outline: none; }
+  &::placeholder { color: rgba(255, 255, 255, 0.1); }
+}
+
+// ─── CHECKBOX ───────────────────────────────
+
+.checkbox-container {
+  display: block;
+  position: relative;
+  padding-left: 30px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  user-select: none;
+  letter-spacing: 1px;
+
+  input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+
+  .checkmark {
+    position: absolute;
+    top: -2px; left: 0;
+    height: 16px; width: 16px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s;
+  }
+
+  &:hover input ~ .checkmark { background-color: rgba(188, 19, 254, 0.1); }
+  input:checked ~ .checkmark {
+    background-color: var(--accent-kaiser);
+    border-color: var(--accent-kaiser);
+    box-shadow: 0 0 10px var(--accent-kaiser-dim);
+  }
+
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 5px; top: 1px;
+    width: 4px; height: 8px;
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  input:checked ~ .checkmark:after { display: block; }
+}
+
+// ─── ACTIONS ────────────────────────────────
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 18px;
+  background: transparent;
+  border: 1px solid var(--accent-kaiser);
+  color: var(--accent-kaiser);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &:hover:not(:disabled) {
+    background: var(--accent-kaiser);
+    color: #fff;
+    box-shadow: 0 0 30px rgba(188, 19, 254, 0.4);
+    transform: scale(1.02);
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.mode-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 10px;
+  opacity: 0.5;
+  transition: all 0.2s;
+
+  &:hover { opacity: 1; color: var(--accent-kaiser); }
+}
+
+// ─── ERROR ──────────────────────────────────
+
+.error-msg {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 0, 0, 0.05);
+  border-left: 3px solid var(--accent-secondary);
+  color: var(--accent-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+
+  .error-pip { font-weight: 900; }
+}
+
+// ─── FOOTER ─────────────────────────────────
+
+.auth-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-grid {
+  display: flex;
+  justify-content: space-between;
+  
+  .status-item {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    .label { color: var(--text-secondary); opacity: 0.4; }
+    .val { color: var(--accent-primary); opacity: 0.6; }
+  }
+}
+
+// ─── UI DECOR ───────────────────────────────
+
+.ui-corners {
+  position: absolute;
+  inset: 50px;
+  pointer-events: none;
+  opacity: 0.2;
+
+  .corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--accent-primary);
+    border-style: solid;
+
+    &.t-l { top: 0; left: 0; border-width: 2px 0 0 2px; }
+    &.t-r { top: 0; right: 0; border-width: 2px 2px 0 0; }
+    &.b-l { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+    &.b-r { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+  }
+}
+
+// ─── ANIMATIONS ─────────────────────────────
+
+@keyframes orbFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(100px, 50px) scale(1.2); }
+}
+
+@keyframes scanMove {
+  0% { transform: translateY(0); opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { transform: translateY(440px); opacity: 0.5; }
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(188, 19, 254, 0.4)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.7)); }
+}

@@ -17,77 +17,91 @@ func InitDB() {
 		log.Fatal(err)
 	}
 
-	createTables := `
-	CREATE TABLE IF NOT EXISTS skills (
-		id TEXT PRIMARY KEY,
-		name TEXT,
-		base_attribute TEXT,
-		trained_only INTEGER,
-		load_penalty INTEGER
-	);
-
-	CREATE TABLE IF NOT EXISTS classes (
-		id TEXT PRIMARY KEY,
-		name TEXT,
-		initial_pv INTEGER,
-		gain_pv INTEGER,
-		initial_san INTEGER,
-		gain_san INTEGER,
-		initial_pe INTEGER,
-		gain_pe INTEGER
-	);
-
-	CREATE TABLE IF NOT EXISTS tracks (
-		id TEXT PRIMARY KEY,
-		name TEXT,
-		class_id TEXT,
-		source TEXT,
-		summary TEXT
-	);
-
-	CREATE TABLE IF NOT EXISTS agents (
-		id TEXT PRIMARY KEY,
-		name TEXT,
-		player TEXT,
-		origin_id TEXT,
-		class_id TEXT,
-		trilha_id TEXT,
-		nex INTEGER,
-		portrait_url TEXT,
-		fields_data TEXT
-	);
-
-	CREATE TABLE IF NOT EXISTS rooms (
-		id TEXT PRIMARY KEY,
-		name TEXT,
-		gm_name TEXT,
-		invite_code TEXT UNIQUE,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
-
-	CREATE TABLE IF NOT EXISTS room_participants (
-		room_id TEXT,
-		user_name TEXT,
-		role TEXT,
-		character_id TEXT,
-		PRIMARY KEY (room_id, user_name)
-	);
-
-	CREATE TABLE IF NOT EXISTS dice_rolls (
-		id TEXT PRIMARY KEY,
-		room_id TEXT,
-		user_name TEXT,
-		dice_string TEXT,
-		result_text TEXT,
-		is_private INTEGER,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
-	`
-
-	_, err = DB.Exec(createTables)
-	if err != nil {
-		log.Fatal(err)
+	statements := []string{
+		`CREATE TABLE IF NOT EXISTS skills (
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			base_attribute TEXT,
+			trained_only INTEGER,
+			load_penalty INTEGER
+		);`,
+		`CREATE TABLE IF NOT EXISTS classes (
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			initial_pv INTEGER,
+			gain_pv INTEGER,
+			initial_san INTEGER,
+			gain_san INTEGER,
+			initial_pe INTEGER,
+			gain_pe INTEGER
+		);`,
+		`CREATE TABLE IF NOT EXISTS tracks (
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			class_id TEXT,
+			source TEXT,
+			summary TEXT
+		);`,
+		`CREATE TABLE IF NOT EXISTS agents (
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			player TEXT,
+			origin_id TEXT,
+			class_id TEXT,
+			trilha_id TEXT,
+			nex INTEGER,
+			portrait_url TEXT,
+			fields_data TEXT
+		);`,
+		`CREATE TABLE IF NOT EXISTS rooms (
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			gm_name TEXT,
+			invite_code TEXT UNIQUE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS room_participants (
+			room_id TEXT,
+			user_name TEXT,
+			role TEXT,
+			character_id TEXT,
+			PRIMARY KEY (room_id, user_name)
+		);`,
+		`CREATE TABLE IF NOT EXISTS dice_rolls (
+			id TEXT PRIMARY KEY,
+			room_id TEXT,
+			user_name TEXT,
+			dice_string TEXT,
+			result_text TEXT,
+			is_private INTEGER,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS users (
+			id TEXT PRIMARY KEY,
+			username TEXT UNIQUE,
+			password_hash TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`,
+		`CREATE TABLE IF NOT EXISTS room_map_state (
+			room_id TEXT PRIMARY KEY,
+			background_url TEXT,
+			grid_size INTEGER DEFAULT 70,
+			grid_color TEXT DEFAULT 'rgba(255,255,255,0.2)',
+			opacity REAL DEFAULT 0.5,
+			offset_x INTEGER DEFAULT 0,
+			offset_y INTEGER DEFAULT 0,
+			zoom REAL DEFAULT 1.0,
+			tokens_data TEXT DEFAULT '[]'
+		);`,
 	}
+
+	for _, stmt := range statements {
+		_, err = DB.Exec(stmt)
+		if err != nil {
+			log.Printf("Error creating table: %v\n", err)
+		}
+	}
+
 
 	SeedData()
 }

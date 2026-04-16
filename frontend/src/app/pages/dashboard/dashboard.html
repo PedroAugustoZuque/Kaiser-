@@ -1,111 +1,227 @@
-<div class="dashboard-page page-container">
-  <!-- Identity Setup (Overlay) -->
-  <div *ngIf="!userName" class="identity-setup surface-glass">
-    <div class="setup-content">
-      <h2 class="accent-title">IDENTIFICAÇÃO REQUERIDA</h2>
-      <p class="crypto-text">> INSIRA SEU NOME OPERACIONAL PARA ACESSAR O SISTEMA CRIS</p>
-      <input type="text" [(ngModel)]="tempName" placeholder="NOME DO AGENTE..." class="field-input terminal-input">
-      <button class="btn accent-btn" (click)="saveIdentity()">VINCULAR IDENTIDADE</button>
+<div class="dashboard-page">
+
+  <!-- ══════════════════════════════════════
+       MAIN DASHBOARD CONTENT
+  ══════════════════════════════════════ -->
+  <div class="dashboard-content">
+
+
+    <!-- TOP HUD BAR -->
+    <header class="hud-bar">
+      <div class="hud-left">
+        <div class="hud-tag">TERMINAL CENTRAL</div>
+        <div class="hud-user">
+          <span class="user-dot"></span>
+          {{ userName }}
+          <span class="hud-div">//</span>
+          <span class="hud-status">ONLINE</span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-stat">
+          <span class="stat-val">{{ rooms.length }}</span>
+          <span class="stat-lab">SALAS</span>
+        </div>
+        <div class="hud-stat">
+          <span class="stat-val">{{ agents.length }}</span>
+          <span class="stat-lab">AGENTES</span>
+        </div>
+        <div class="hud-actions">
+          <button class="action-btn primary" (click)="showCreateModal = true">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 2v12M2 8h12" stroke-linecap="round"/>
+            </svg>
+            NOVA MESA
+          </button>
+          <button class="action-btn secondary" (click)="showJoinModal = true">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 3l4 5-4 5M14 8H2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            ENTRAR
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN GRID -->
+    <div class="dash-grid">
+
+      <!-- ── COLUMN LEFT: SALAS ── -->
+      <section class="dash-section rooms-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="section-pip"></div>
+            <h3 class="section-title">SALAS DE JOGO ATIVAS</h3>
+          </div>
+          <div class="section-count">{{ rooms.length }} OPERAÇÃO(ÕES)</div>
+        </div>
+
+        <div *ngIf="rooms.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1">
+              <rect x="5" y="10" width="30" height="22" rx="2"/>
+              <path d="M13 10V8a2 2 0 012-2h10a2 2 0 012 2v2"/>
+              <path d="M20 20h0" stroke-linecap="round" stroke-width="3"/>
+            </svg>
+          </div>
+          <p class="empty-label">NENHUMA OPERAÇÃO EM CURSO</p>
+          <p class="empty-sub">Crie uma nova mesa ou entre com um código de convite</p>
+        </div>
+
+        <div class="rooms-list">
+          <div *ngFor="let room of rooms"
+               class="room-card"
+               (click)="onRoomClick(room)">
+            <div class="room-card-left">
+              <div class="room-folder">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="1.2">
+                  <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                </svg>
+              </div>
+              <div class="room-info">
+                <div class="room-name">{{ room.name }}</div>
+                <div class="room-meta-row">
+                  <span class="room-gm">MESTRE: {{ room.gmName }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="room-card-right">
+              <div class="room-code">{{ room.inviteCode }}</div>
+              <div class="room-date">{{ room.createdAt | date:'dd/MM HH:mm' }}</div>
+              <div class="room-enter-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M6 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── COLUMN RIGHT: AGENTES ── -->
+      <section class="dash-section agents-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="section-pip agents-pip"></div>
+            <h3 class="section-title">SEUS DOSSIÊS</h3>
+          </div>
+          <a routerLink="/recrutamento" class="section-action-link">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 2v12M2 8h12" stroke-linecap="round"/>
+            </svg>
+            RECRUTAR
+          </a>
+        </div>
+
+        <div *ngIf="agents.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1">
+              <circle cx="20" cy="14" r="6"/>
+              <path d="M8 34c0-7 5-12 12-12s12 5 12 12"/>
+            </svg>
+          </div>
+          <p class="empty-label">NENHUM AGENTE REGISTRADO</p>
+          <p class="empty-sub">Recrute seu primeiro agente para começar</p>
+        </div>
+
+        <div class="agents-grid">
+          <div *ngFor="let agent of agents"
+               class="agent-card"
+               (dblclick)="onAgentDoubleClick(agent)">
+
+            <div class="agent-portrait"
+                 [style.backgroundImage]="agent.portraitUrl ? 'url(' + agent.portraitUrl + ')' : 'none'"
+                 [class.no-portrait]="!agent.portraitUrl">
+              <div class="portrait-overlay"></div>
+              <div class="agent-nex-badge">NEX {{ agent.fieldsData['nex'] || 5 }}%</div>
+            </div>
+
+            <div class="agent-body">
+              <h4 class="agent-name">{{ agent.name }}</h4>
+              <div class="agent-class">{{ agent.fieldsData['class'] || 'Combatente' }}</div>
+              <div class="agent-edit-hint">DUPLO CLIQUE PARA EDITAR</div>
+            </div>
+
+            <button class="agent-delete" (click)="deleteAgent(agent.id, $event)" title="Remover dossiê">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 
-  <div *ngIf="userName" class="dashboard-content">
-    <div class="page-header" style="border-bottom: 2px solid var(--accent-primary); margin-bottom: 30px; padding-bottom: 10px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+  <!-- ══════════════════════════════════════
+       MODALS
+  ══════════════════════════════════════ -->
+  <div *ngIf="showCreateModal" class="modal-overlay" (click)="showCreateModal = false">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="1.5">
+            <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+            <path d="M12 11v4M10 13h4" stroke-linecap="round"/>
+          </svg>
+        </div>
         <div>
-          <h1 style="margin: 0;">TERMINAL CENTRAL</h1>
-          <p style="font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
-            LOGADO COMO: {{ userName }} // STATUS: ONLINE
-          </p>
+          <div class="modal-tag">OPERAÇÃO // NOVA</div>
+          <h3 class="modal-title">INICIAR NOVA MISSÃO</h3>
         </div>
-        <div class="header-actions">
-          <button class="btn btn-sm" (click)="showCreateModal = true">+ NOVA MESA</button>
-          <button class="btn btn-sm btn-secondary" (click)="showJoinModal = true">ENTRAR POR CÓDIGO</button>
-        </div>
+        <button class="modal-close" (click)="showCreateModal = false">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">NOME DA OPERAÇÃO</label>
+        <input type="text" [(ngModel)]="newRoomName"
+               (keyup.enter)="createRoom()"
+               placeholder="Ex: OPERAÇÃO NÉVOA..."
+               class="modal-input">
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn primary" (click)="createRoom()">CRIAR SALA</button>
+        <button class="modal-btn ghost" (click)="showCreateModal = false">CANCELAR</button>
       </div>
     </div>
-
-    <!-- Modals -->
-    <div *ngIf="showCreateModal" class="modal-overlay">
-      <div class="modal-content surface-glass">
-        <h3>INICIAR NOVA OPERAÇÃO</h3>
-        <input type="text" [(ngModel)]="newRoomName" placeholder="NOME DA MISSÃO / MESA..." class="field-input">
-        <div class="modal-buttons">
-          <button class="btn" (click)="createRoom()">CRIAR</button>
-          <button class="btn btn-secondary" (click)="showCreateModal = false">CANCELAR</button>
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="showJoinModal" class="modal-overlay">
-      <div class="modal-content surface-glass">
-        <h3>DECODIFICAR CONVITE</h3>
-        <input type="text" [(ngModel)]="inviteCodeInput" placeholder="CÓDIGO DE 6 DÍGITOS..." class="field-input uppercase">
-        <div class="modal-buttons">
-          <button class="btn" (click)="joinRoom()">CONECTAR</button>
-          <button class="btn btn-secondary" (click)="showJoinModal = false">CANCELAR</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Rooms Section -->
-    <section class="dashboard-section">
-      <h3 class="section-title">SALAS DE JOGO ATIVAS</h3>
-      
-      <div *ngIf="rooms.length === 0" class="empty-state surface-glass small">
-        <p>NENHUMA OPERAÇÃO EM CURSO NO MOMENTO.</p>
-      </div>
-
-      <div class="room-grid">
-        <div *ngFor="let room of rooms" class="room-card surface-glass" (click)="onRoomClick(room)">
-          <div class="room-icon">
-             <div class="folder-svg"></div>
-          </div>
-          <div class="room-info">
-            <h4 class="room-name">{{ room.name }}</h4>
-            <div class="room-meta">
-              <span class="gm-tag">MESTRE: {{ room.gmName }}</span>
-              <span class="code-badge">{{ room.inviteCode }}</span>
-            </div>
-          </div>
-          <div class="room-footer">
-            CONEXÃO ESTÁVEL // SET {{ room.createdAt | date:'short' }}
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Personal Dossiers Section (Collapsible or Secondary) -->
-    <section class="dashboard-section" style="margin-top: 50px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h3 class="section-title" style="margin-bottom: 0;">SEUS DOSSIÊS (LOCAL)</h3>
-        <a routerLink="/recrutamento" class="btn btn-sm">RECRUTAR NOVO AGENTE</a>
-      </div>
-
-      <div *ngIf="agents.length === 0" class="empty-state surface-glass small">
-        <p>NENHUM AGENTE REGISTRADO LOCALMENTE.</p>
-      </div>
-
-      <div class="agent-grid">
-        <div *ngFor="let agent of agents" 
-             class="agent-card surface-glass" 
-             (dblclick)="onAgentDoubleClick(agent)">
-          <div class="card-header">
-            <span class="nex-tag">NEX {{ agent.fieldsData['nex'] || 5 }}%</span>
-            <button class="delete-btn" (click)="deleteAgent(agent.id, $event)">×</button>
-          </div>
-          <div class="agent-portrait" 
-               [style.backgroundImage]="agent.portraitUrl ? 'url(' + agent.portraitUrl + ')' : 'none'"
-               [class.no-portrait]="!agent.portraitUrl">
-          </div>
-          <div class="agent-info">
-            <h4 class="agent-name">{{ agent.name }}</h4>
-            <div class="agent-specs">
-              <span class="class-label">{{ agent.fieldsData['class'] || 'Combatente' }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
+
+  <div *ngIf="showJoinModal" class="modal-overlay" (click)="showJoinModal = false">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-tag">ACESSO // CONVITE</div>
+          <h3 class="modal-title">DECODIFICAR CONVITE</h3>
+        </div>
+        <button class="modal-close" (click)="showJoinModal = false">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">CÓDIGO DE ACESSO</label>
+        <input type="text" [(ngModel)]="inviteCodeInput"
+               (keyup.enter)="joinRoom()"
+               placeholder="000000"
+               class="modal-input code-input">
+        <p class="field-hint">> Insira o código de 6 dígitos fornecido pelo Mestre</p>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn primary" (click)="joinRoom()">CONECTAR</button>
+        <button class="modal-btn ghost" (click)="showJoinModal = false">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+
 </div>

@@ -1,0 +1,48 @@
+<div class="vtt-viewport" 
+     (mousedown)="onMouseDown($event)"
+     (wheel)="onWheel($event)">
+  
+  <div #mapContainer class="vtt-container" [ngStyle]="containerStyle">
+    
+    <!-- Background Layer -->
+    <div class="layer background-layer">
+      <img *ngIf="state.background" [src]="state.background" class="map-image">
+      <div *ngIf="!state.background" class="empty-map-placeholder">
+        <span class="placeholder-text">CENTRO DE OPERAÇÕES: AGUARDANDO MAPA...</span>
+      </div>
+    </div>
+
+    <!-- Grid Layer -->
+    <div class="layer grid-layer" [ngStyle]="gridStyle"></div>
+
+    <!-- Token Layer -->
+    <div class="layer token-layer">
+      <div *ngFor="let token of state.tokens" 
+           class="vtt-token"
+           [ngClass]="{'token-monster': token.type === 'monster', 'token-item': token.type === 'item'}"
+           [ngStyle]="getTokenStyle(token)"
+           (mousedown)="onTokenStartDrag($event, token)">
+        
+        <div class="token-portrait-wrap">
+          <img [src]="token.portraitUrl || 'assets/default-token.png'" class="token-img">
+        </div>
+
+        <!-- Health Bar -->
+        <div class="token-hp-bar" *ngIf="token.maxHp > 0">
+          <div class="hp-fill" [style.width.%]="(token.currentHp / token.maxHp) * 100"></div>
+        </div>
+
+        <div class="token-name">{{ token.name }}</div>
+      </div>
+    </div>
+
+    <!-- Markers Layer (Future) -->
+    <div class="layer markers-layer"></div>
+
+  </div>
+
+  <!-- Perspective UI Overlay -->
+  <div class="vtt-hud-overlay">
+    <div class="zoom-indicator">ZOOM: {{ (state.zoom * 100).toFixed(0) }}%</div>
+  </div>
+</div>

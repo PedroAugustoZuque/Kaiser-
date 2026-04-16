@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Room, RoomDetails } from '../../models/room';
+import { Room, RoomDetails, DiceRoll, MapState } from '../../models/room';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RoomService {
-  private apiUrl = 'http://localhost:8080/api/v1/rooms';
+  private apiUrl = 'http://10.0.110.7:8080/api/v1/rooms';
 
   constructor(private http: HttpClient) {}
 
@@ -31,7 +31,12 @@ export class RoomService {
     return this.http.post<any>(`${this.apiUrl}/${roomId}/assign`, { userName, characterId });
   }
 
-  saveRoll(roomId: string, roll: Partial<any>): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${roomId}/roll`, roll);
+  saveRoll(roomId: string, roll: Partial<DiceRoll>): Observable<DiceRoll> {
+    return this.http.post<DiceRoll>(`${this.apiUrl}/${roomId}/roll`, roll);
+  }
+
+  updateMapState(roomId: string, map: MapState): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${roomId}/map`, map);
   }
 }
+
